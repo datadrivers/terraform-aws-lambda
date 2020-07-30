@@ -846,6 +846,10 @@ def install_pip_requirements(query, requirements_file):
     log.info('Installing python requirements: %s', requirements_file)
     with tempdir() as temp_dir:
         requirements_filename = os.path.basename(requirements_file)
+        requirements_dir = os.path.dirname(requirements_file)
+        github_workspace = os.getenv('GITHUB_WORKSPACE', None)
+        if github_workspace:
+            requirements_dir = requirements_dir.replace("/github/workspace", github_workspace)
         target_file = os.path.join(temp_dir, requirements_filename)
         shutil.copyfile(requirements_file, target_file)
 
@@ -878,7 +882,7 @@ def install_pip_requirements(query, requirements_file):
                                              chown_mask, '.'])]
                 shell_command = [' '.join(shell_command)]
                 check_call(docker_run_command(
-                    os.path.dirname(requirements_file), shell_command, runtime,
+                    requirements_dir, shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
