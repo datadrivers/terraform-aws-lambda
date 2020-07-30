@@ -847,9 +847,11 @@ def install_pip_requirements(query, requirements_file):
     with tempdir() as temp_dir:
         requirements_filename = os.path.basename(requirements_file)
         requirements_dir = os.path.dirname(requirements_file)
-        github_workspace = os.getenv('GITHUB_WORKSPACE', None)
-        if github_workspace:
-            requirements_dir = requirements_dir.replace("/github/workspace", github_workspace)
+        runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
+        if runner_workspace:
+            # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
+            repo_name = os.getenv('GITHUB_REPOSITORY', None).split("/")[1]
+            requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
         target_file = os.path.join(temp_dir, requirements_filename)
         shutil.copyfile(requirements_file, target_file)
 
