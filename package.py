@@ -878,7 +878,7 @@ def install_pip_requirements(query, requirements_file):
                                              chown_mask, '.'])]
                 shell_command = [' '.join(shell_command)]
                 check_call(docker_run_command(
-                    '.', shell_command, runtime,
+                    os.path.dirname(requirements_file), shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
