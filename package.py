@@ -118,10 +118,10 @@ def cd(path, silent=False):
 
 
 @contextmanager
-def tempdir():
+def tempdir(dir=None):
     """Creates a temporary directory and then deletes it afterwards."""
     prefix = 'terraform-aws-lambda-'
-    path = tempfile.mkdtemp(prefix=prefix)
+    path = tempfile.mkdtemp(prefix=prefix,dir=dir)
     cmd_log.info('mktemp -d %sXXXXXXXX # %s', prefix, shlex.quote(path))
     try:
         yield path
@@ -844,24 +844,25 @@ def install_pip_requirements(query, requirements_file):
     working_dir = os.getcwd()
 
     log.info('Installing python requirements: %s', requirements_file)
-    with tempdir() as temp_dir:
+    # create temp dir in host path
+    requirements_dir = os.path.dirname(requirements_file)
+    runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
+    github_repository = os.getenv('GITHUB_REPOSITORY', None)
+    if runner_workspace and github_repository:
+        # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
+        repo_name = github_repository.split("/")[1]
+        requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
+    with tempdir(requirements_dir) as temp_dir:
         requirements_filename = os.path.basename(requirements_file)
-        requirements_dir = os.path.dirname(requirements_file)
-        runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
-        github_repository = os.getenv('GITHUB_REPOSITORY', None)
-        if runner_workspace and github_repository:
-            # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
-            repo_name = github_repository.split("/")[1]
-            requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
-        # target_file = os.path.join(temp_dir, requirements_filename)
-        # shutil.copyfile(requirements_file, target_file)
+        target_file = os.path.join(temp_dir, requirements_filename)
+        shutil.copyfile(requirements_file, target_file)
 
         python_exec = runtime
         if WINDOWS and not docker:
             python_exec = 'python.exe'
 
         # Install dependencies into the requirements directory.
-        with cd(requirements_dir):
+        with cd(temp_dir):
             pip_command = [
                 python_exec, '-m', 'pip',
                 'install', '--no-compile',
@@ -896,7 +897,7 @@ def install_pip_requirements(query, requirements_file):
                 check_call(pip_command)
 
             # os.remove(target_file)
-            yield requirements_dir
+            yield temp_dir
 
 
 def docker_image_id_command(tag):
