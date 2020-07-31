@@ -121,7 +121,7 @@ def cd(path, silent=False):
 def tempdir(dir=None):
     """Creates a temporary directory and then deletes it afterwards."""
     prefix = 'terraform-aws-lambda-'
-    path = tempfile.mkdtemp(prefix=prefix,dir=dir)
+    path = tempfile.mkdtemp(prefix=prefix, dir=dir)
     cmd_log.info('mktemp -d %sXXXXXXXX # %s', prefix, shlex.quote(path))
     try:
         yield path
@@ -861,7 +861,7 @@ def install_pip_requirements(query, requirements_file):
         if WINDOWS and not docker:
             python_exec = 'python.exe'
 
-        # Install dependencies into the requirements directory.
+        # Install dependencies into the temporary directory.
         with cd(temp_dir):
             pip_command = [
                 python_exec, '-m', 'pip',
@@ -886,7 +886,7 @@ def install_pip_requirements(query, requirements_file):
                                              chown_mask, '.'])]
                 shell_command = [' '.join(shell_command)]
                 check_call(docker_run_command(
-                    ".", shell_command, runtime,
+                    '.', shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
@@ -896,7 +896,7 @@ def install_pip_requirements(query, requirements_file):
                 log_handler and log_handler.flush()
                 check_call(pip_command)
 
-            # os.remove(target_file)
+            os.remove(target_file)
             yield temp_dir
 
 
