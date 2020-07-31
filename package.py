@@ -848,12 +848,13 @@ def install_pip_requirements(query, requirements_file):
         requirements_filename = os.path.basename(requirements_file)
         requirements_dir = os.path.dirname(requirements_file)
         runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
-        if runner_workspace:
+        github_repository = os.getenv('GITHUB_REPOSITORY', None)
+        if runner_workspace and github_repository:
             # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
-            repo_name = os.getenv('GITHUB_REPOSITORY', None).split("/")[1]
+            repo_name = github_repository.split("/")[1]
             requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
-        target_file = os.path.join(temp_dir, requirements_filename)
-        shutil.copyfile(requirements_file, target_file)
+        # target_file = os.path.join(temp_dir, requirements_filename)
+        # shutil.copyfile(requirements_file, target_file)
 
         python_exec = runtime
         if WINDOWS and not docker:
@@ -894,7 +895,7 @@ def install_pip_requirements(query, requirements_file):
                 log_handler and log_handler.flush()
                 check_call(pip_command)
 
-            os.remove(target_file)
+            # os.remove(target_file)
             yield temp_dir
 
 
