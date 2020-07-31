@@ -867,10 +867,11 @@ def install_pip_requirements(query, requirements_file):
                 # github actions runner is special and docker inside docker needs host path
                 runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
                 github_repository = os.getenv('GITHUB_REPOSITORY', None)
+                temp_dir_docker_host = temp_dir
                 if runner_workspace and github_repository:
                     # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
                     repo_name = github_repository.split("/")[1]
-                    temp_dir = temp_dir.replace(
+                    temp_dir_docker_host = temp_dir_docker_host.replace(
                         "/github/workspace", "{}/{}".format(runner_workspace, repo_name))
                 with_ssh_agent = docker.with_ssh_agent
                 pip_cache_dir = docker.docker_pip_cache
@@ -889,7 +890,7 @@ def install_pip_requirements(query, requirements_file):
                                  ]
                 shell_command = [' '.join(shell_command)]
                 check_call(docker_run_command(
-                    temp_dir, shell_command, runtime,
+                    temp_dir_docker_host, shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
