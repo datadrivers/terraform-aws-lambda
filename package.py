@@ -859,8 +859,8 @@ def install_pip_requirements(query, requirements_file):
         if WINDOWS and not docker:
             python_exec = 'python.exe'
 
-        # Install dependencies into the temporary directory.
-        with cd(temp_dir):
+        # Install dependencies into the requirements directory.
+        with cd(requirements_dir):
             pip_command = [
                 python_exec, '-m', 'pip',
                 'install', '--no-compile',
@@ -884,7 +884,7 @@ def install_pip_requirements(query, requirements_file):
                                              chown_mask, '.'])]
                 shell_command = [' '.join(shell_command)]
                 check_call(docker_run_command(
-                    requirements_dir, shell_command, runtime,
+                    ".", shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
