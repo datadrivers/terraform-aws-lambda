@@ -896,7 +896,7 @@ def install_pip_requirements(query, requirements_file):
                 check_call(pip_command)
 
             # os.remove(target_file)
-            yield temp_dir
+            yield requirements_dir
 
 
 def docker_image_id_command(tag):
