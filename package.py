@@ -846,12 +846,6 @@ def install_pip_requirements(query, requirements_file):
     log.info('Installing python requirements: %s', requirements_file)
     # create temp dir in host path
     requirements_dir = os.path.dirname(requirements_file)
-    runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
-    github_repository = os.getenv('GITHUB_REPOSITORY', None)
-    if runner_workspace and github_repository:
-        # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
-        repo_name = github_repository.split("/")[1]
-        requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
     with tempdir(requirements_dir) as temp_dir:
         requirements_filename = os.path.basename(requirements_file)
         target_file = os.path.join(temp_dir, requirements_filename)
@@ -885,8 +879,15 @@ def install_pip_requirements(query, requirements_file):
                                  shlex_join(['chown', '-R',
                                              chown_mask, '.'])]
                 shell_command = [' '.join(shell_command)]
+                # docker needs host path and github actions is special
+                runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
+                github_repository = os.getenv('GITHUB_REPOSITORY', None)
+                if runner_workspace and github_repository:
+                    # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
+                    repo_name = github_repository.split("/")[1]
+                    requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
                 check_call(docker_run_command(
-                    '.', shell_command, runtime,
+                    requirements_dir, shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
