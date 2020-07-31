@@ -885,9 +885,9 @@ def install_pip_requirements(query, requirements_file):
                 if runner_workspace and github_repository:
                     # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
                     repo_name = github_repository.split("/")[1]
-                    requirements_dir = requirements_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
+                    temp_dir = temp_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
                 check_call(docker_run_command(
-                    requirements_dir, shell_command, runtime,
+                    temp_dir, shell_command, runtime,
                     image=docker_image_tag_id,
                     shell=True, ssh_agent=with_ssh_agent,
                     pip_cache_dir=pip_cache_dir,
