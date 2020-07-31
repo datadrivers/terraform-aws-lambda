@@ -847,6 +847,9 @@ def install_pip_requirements(query, requirements_file):
     # create temp dir in host path or inside docker host container
     requirements_dir = os.path.dirname(requirements_file)
     with tempdir(requirements_dir) as temp_dir:
+        requirements_filename = os.path.basename(requirements_file)
+        target_file = os.path.join(temp_dir, requirements_filename)
+        shutil.copyfile(requirements_file, target_file)
         # github actions runner is special and docker needs host path
         runner_workspace = os.getenv('RUNNER_WORKSPACE', None)
         github_repository = os.getenv('GITHUB_REPOSITORY', None)
@@ -854,9 +857,6 @@ def install_pip_requirements(query, requirements_file):
             # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
             repo_name = github_repository.split("/")[1]
             temp_dir = temp_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
-        requirements_filename = os.path.basename(requirements_file)
-        target_file = os.path.join(temp_dir, requirements_filename)
-        shutil.copyfile(requirements_file, target_file)
 
         python_exec = runtime
         if WINDOWS and not docker:
