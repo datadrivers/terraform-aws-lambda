@@ -870,7 +870,8 @@ def install_pip_requirements(query, requirements_file):
                 if runner_workspace and github_repository:
                     # https://docs.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
                     repo_name = github_repository.split("/")[1]
-                    temp_dir = temp_dir.replace("/github/workspace", "{}/{}".format(runner_workspace, repo_name))
+                    temp_dir = temp_dir.replace(
+                        "/github/workspace", "{}/{}".format(runner_workspace, repo_name))
                 with_ssh_agent = docker.with_ssh_agent
                 pip_cache_dir = docker.docker_pip_cache
                 if pip_cache_dir:
@@ -884,9 +885,8 @@ def install_pip_requirements(query, requirements_file):
                 chown_mask = '{}:{}'.format(os.getuid(), os.getgid())
                 shell_command = [shlex_join(pip_command), '&&',
                                  shlex_join(['chown', '-R',
-                                             chown_mask, '.']),
-                                # debug - remove me
-                                ';', shlex_join(['ls', '-la', '.', temp_dir])]
+                                             chown_mask, '.'])
+                                 ]
                 shell_command = [' '.join(shell_command)]
                 check_call(docker_run_command(
                     temp_dir, shell_command, runtime,
